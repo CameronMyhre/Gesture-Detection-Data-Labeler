@@ -666,8 +666,15 @@ async def handle_key(e: events.KeyEventArguments):
 def classical_classify(e):
 
     global current_frame, raw_keypoints, normalized
+
+    if normalized is None:
+        ui.notify("Error! Cannot classify empty frame data!")
+        return
+
+    # Label the frame.
     label = gesture_classification_utils.classical_classify(normalized)
     ui.notify(f"Classified frame as {label}")
+    assign_label(label)
 
 
 # ============================================================
