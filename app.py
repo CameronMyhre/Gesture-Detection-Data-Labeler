@@ -26,9 +26,9 @@ import gesture_classification_utils
 
 # ============================================================
 # 1. Configuration
-# ============================================================
+# ============================================2026-10-17_15-14-42_010.mp4================
 
-VIDEO_PATH = Path("2026-10-17_14-33-24_002.mp4")
+VIDEO_PATH = Path("2026-10-17_15-14-42_010.mp4")
 MODEL_PATH = "yolo26x-pose.pt"
 
 RAW_PATH = VIDEO_PATH.with_name(VIDEO_PATH.stem + "_raw.npz")
@@ -471,7 +471,7 @@ async def infer_keypoints():
             conf=confidence,
             task="pose",
             imgsz=used_imgsz,
-            device=0,
+            # device=0,
         )
 
         points = extract_pose(results[0])
@@ -615,6 +615,7 @@ async def process_all():
         await infer_keypoints()
         if current_frame >= total_frames - 1:
             break
+        classical_classify(None)
         next_frame()
 
 
@@ -663,11 +664,18 @@ async def handle_key(e: events.KeyEventArguments):
         next_frame()
 
 
+last_normalized = None
+
+
 def classical_classify(e):
 
-    global current_frame, raw_keypoints, normalized
+    global current_frame, raw_keypoints, normalized, last_normalized
 
-    if normalized is None:
+    if (
+        normalized is None
+        or last_normalized is not None
+        and np.array_equal(last_normalized, normalized)
+    ):
         ui.notify("Error! Cannot classify empty frame data!")
         return
 
@@ -675,6 +683,7 @@ def classical_classify(e):
     label = gesture_classification_utils.classical_classify(normalized)
     ui.notify(f"Classified frame as {label}")
     assign_label(label)
+    last_normalized = normalized  # Prevent past frames from overriding this frame.
 
 
 # ============================================================
